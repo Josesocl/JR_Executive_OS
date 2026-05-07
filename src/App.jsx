@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import { useStore } from './store/useStore'
 import Dashboard from './pages/Dashboard'
@@ -19,8 +20,20 @@ const PAGE_MAP = {
 }
 
 export default function App() {
-  const { activeTab } = useStore()
+  const { activeTab, initialized, initializeFromDB } = useStore()
   const Page = PAGE_MAP[activeTab] || Dashboard
+
+  useEffect(() => {
+    initializeFromDB()
+  }, [])
+
+  if (!initialized) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-surface-secondary">
+        <p className="text-text-secondary text-sm">Cargando...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-surface-secondary">
