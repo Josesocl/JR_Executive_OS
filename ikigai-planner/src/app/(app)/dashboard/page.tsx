@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { format } from 'date-fns'
 
-export default function RootPage() {
+export default function DashboardPage() {
   redirect(`/planner/${format(new Date(), 'yyyy-MM-dd')}`)
 }
