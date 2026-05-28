@@ -17,7 +17,7 @@ export function useHabits(userId: string, date: string) {
     queryKey: keys.habits(userId),
     queryFn: async (): Promise<Habit[]> => {
       const { data, error } = await supabase
-        .from('habits')
+        .from('planner_habits')
         .select('*')
         .eq('user_id', userId)
         .eq('active', true)
