@@ -2,17 +2,38 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const supabase = createClient()
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleGoogleLogin() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    // Auth logic will be wired up later
+    setError('')
+    setLoading(true)
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    setLoading(false)
+    if (error) {
+      setError(error.message)
+    } else {
+      router.push('/dashboard')
+    }
   }
 
   return (
@@ -38,8 +59,7 @@ export default function LoginPage() {
 
       <CardContent className="pt-4 space-y-4">
         {/* Google OAuth */}
-        <a href="/api/auth/google" className="block">
-          <Button variant="outline" className="w-full gap-2">
+        <Button variant="outline" className="w-full gap-2" onClick={handleGoogleLogin}>
             <svg viewBox="0 0 24 24" className="w-4 h-4" aria-hidden="true">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -60,7 +80,6 @@ export default function LoginPage() {
             </svg>
             Iniciar sesión con Google
           </Button>
-        </a>
 
         {/* Divider */}
         <div className="relative">
@@ -104,8 +123,11 @@ export default function LoginPage() {
             />
           </div>
 
-          <Button type="submit" className="w-full">
-            Iniciar sesión
+          {error && (
+            <p className="text-sm text-red-500 text-center">{error}</p>
+          )}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Ingresando...' : 'Iniciar sesión'}
           </Button>
         </form>
 

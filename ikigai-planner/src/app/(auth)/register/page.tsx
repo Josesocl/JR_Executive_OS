@@ -5,15 +5,39 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/client'
 
 export default function RegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const supabase = createClient()
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleGoogleLogin() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    // Auth logic will be wired up later
+    setError('')
+    setLoading(true)
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name } },
+    })
+    setLoading(false)
+    if (error) {
+      setError(error.message)
+    } else {
+      setSuccess(true)
+    }
   }
 
   return (
@@ -38,9 +62,14 @@ export default function RegisterPage() {
       </CardHeader>
 
       <CardContent className="pt-4 space-y-4">
+        {success && (
+          <div className="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-700 text-center">
+            ¡Cuenta creada! Revisa tu correo para confirmar tu cuenta.
+          </div>
+        )}
+
         {/* Google OAuth */}
-        <a href="/api/auth/google" className="block">
-          <Button variant="outline" className="w-full gap-2">
+        <Button variant="outline" className="w-full gap-2" onClick={handleGoogleLogin}>
             <svg viewBox="0 0 24 24" className="w-4 h-4" aria-hidden="true">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -61,7 +90,6 @@ export default function RegisterPage() {
             </svg>
             Registrarse con Google
           </Button>
-        </a>
 
         {/* Divider */}
         <div className="relative">
@@ -121,8 +149,11 @@ export default function RegisterPage() {
             />
           </div>
 
-          <Button type="submit" className="w-full">
-            Crear cuenta
+          {error && (
+            <p className="text-sm text-red-500 text-center">{error}</p>
+          )}
+          <Button type="submit" className="w-full" disabled={loading || success}>
+            {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </Button>
         </form>
 
