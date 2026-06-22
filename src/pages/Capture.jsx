@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus, Phone, FileText, Lightbulb, BarChart2, CheckCircle2 } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { Card, SectionTitle, StepNum, Badge } from '../components/ui'
+import ProcessModal from '../components/ProcessModal'
 
 const QUICK_CAPTURES = [
   { Icon: Phone,     label: 'Llamada',   text: '📞 Llamar a cliente sobre propuesta Hormisur' },
@@ -28,7 +29,8 @@ const SYSTEM_LISTS = [
 
 export default function Capture() {
   const [input, setInput] = useState('')
-  const { inbox, captureItem, processInboxItem } = useStore()
+  const [processingItem, setProcessingItem] = useState(null) // inbox item being processed
+  const { inbox, captureItem } = useStore()
   const pending = inbox.filter(i => !i.processed)
 
   const handleCapture = () => {
@@ -88,9 +90,9 @@ export default function Capture() {
                 <span className="text-xs text-gray-400 mr-2">{item.time}</span>
                 <button
                   className="btn-ghost py-1 px-2 text-xs"
-                  onClick={() => processInboxItem(item.id)}
+                  onClick={() => setProcessingItem(item)}
                 >
-                  Procesar
+                  Procesar →
                 </button>
               </div>
             ))}
@@ -124,6 +126,13 @@ export default function Capture() {
           ))}
         </Card>
       </div>
+
+      {processingItem && (
+        <ProcessModal
+          item={processingItem}
+          onClose={() => setProcessingItem(null)}
+        />
+      )}
     </div>
   )
 }
