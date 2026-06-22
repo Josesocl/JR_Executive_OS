@@ -27,15 +27,16 @@ export default function Actions() {
   const [addForm, setAddForm]   = useState(EMPTY_FORM)
   const [editModal, setEditModal] = useState(null) // null | { action }
   const [editForm, setEditForm]   = useState(EMPTY_FORM)
-  const [saving, setSaving]     = useState(false)
+  const [addSaving, setAddSaving] = useState(false)
+  const [editSaving, setEditSaving] = useState(false)
 
   const handleAdd = async () => {
     if (!addForm.text.trim()) return
-    setSaving(true)
+    setAddSaving(true)
     await addAction(addForm.text.trim(), addForm.ctx, addForm.energy, addForm.project)
     setAddForm(EMPTY_FORM)
     setShowAdd(false)
-    setSaving(false)
+    setAddSaving(false)
   }
 
   const openEdit = (action) => {
@@ -45,10 +46,10 @@ export default function Actions() {
 
   const handleUpdate = async () => {
     if (!editForm.text.trim()) return
-    setSaving(true)
+    setEditSaving(true)
     await updateAction(editModal.action.id, editForm)
     setEditModal(null)
-    setSaving(false)
+    setEditSaving(false)
   }
 
   const handleDelete = async (id) => {
@@ -92,8 +93,8 @@ export default function Actions() {
             </div>
             <div className="flex justify-end gap-2">
               <button className="btn-ghost" onClick={() => setShowAdd(false)}>Cancelar</button>
-              <button className="btn-primary" onClick={handleAdd} disabled={saving || !addForm.text.trim()}>
-                {saving ? 'Guardando…' : 'Agregar'}
+              <button className="btn-primary" onClick={handleAdd} disabled={addSaving || !addForm.text.trim()}>
+                {addSaving ? 'Guardando…' : 'Agregar'}
               </button>
             </div>
           </div>
@@ -171,8 +172,8 @@ export default function Actions() {
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button className="btn-ghost" onClick={() => setEditModal(null)}>Cancelar</button>
-              <button className="btn-primary" onClick={handleUpdate} disabled={saving || !editForm.text.trim()}>
-                {saving ? 'Guardando…' : 'Guardar'}
+              <button className="btn-primary" onClick={handleUpdate} disabled={editSaving || !editForm.text.trim()}>
+                {editSaving ? 'Guardando…' : 'Guardar'}
               </button>
             </div>
           </div>

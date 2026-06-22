@@ -175,25 +175,30 @@ export const useStore = create((set, get) => ({
   },
 
   convertInboxItem: async (id, type, fields) => {
-    await supabase.from('inbox').update({ processed: true }).eq('id', id)
     if (type === 'action') {
       const { data } = await supabase
         .from('actions')
         .insert({ text: fields.text, ctx: fields.ctx || '', done: false, energy: fields.energy || 'med', project: fields.project || '' })
         .select().single()
-      if (data) set((s) => ({
-        inbox: s.inbox.map((i) => i.id === id ? { ...i, processed: true } : i),
-        actions: [...s.actions, normalizeAction(data)],
-      }))
+      if (data) {
+        await supabase.from('inbox').update({ processed: true }).eq('id', id)
+        set((s) => ({
+          inbox: s.inbox.map((i) => i.id === id ? { ...i, processed: true } : i),
+          actions: [...s.actions, normalizeAction(data)],
+        }))
+      }
     } else {
       const { data } = await supabase
         .from('projects')
         .insert({ name: fields.name, status: 'active', next_action: fields.nextAction || '', pillar: fields.pillar || '' })
         .select().single()
-      if (data) set((s) => ({
-        inbox: s.inbox.map((i) => i.id === id ? { ...i, processed: true } : i),
-        projects: [...s.projects, normalizeProject(data)],
-      }))
+      if (data) {
+        await supabase.from('inbox').update({ processed: true }).eq('id', id)
+        set((s) => ({
+          inbox: s.inbox.map((i) => i.id === id ? { ...i, processed: true } : i),
+          projects: [...s.projects, normalizeProject(data)],
+        }))
+      }
     }
   },
 
