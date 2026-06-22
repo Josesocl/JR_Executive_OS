@@ -3,7 +3,6 @@ import { FolderOpen, Clock, CheckCircle2, Archive, Plus, Pencil, Trash2 } from '
 import { useStore } from '../store/useStore'
 import { Card, SectionTitle, Badge, EmptyState } from '../components/ui'
 import Modal from '../components/Modal'
-import { clsx } from 'clsx'
 
 const STATUS_OPTIONS = [
   { value: 'active',  label: 'Activo'     },
@@ -96,11 +95,11 @@ export default function Projects() {
                     <div className="text-xs text-gray-400 mt-0.5">→ {p.nextAction}</div>
                   )}
                 </div>
-                <Badge variant="gray" className="text-xs">{p.pillar}</Badge>
-                <button onClick={() => openEdit(p)} className="text-gray-300 hover:text-blue-500 transition-colors">
+                {p.pillar && <Badge variant="gray" className="text-xs">{p.pillar}</Badge>}
+                <button onClick={() => openEdit(p)} className="text-gray-300 hover:text-blue-500 transition-colors" aria-label="Editar proyecto">
                   <Pencil size={13} />
                 </button>
-                <button onClick={() => handleDelete(p.id)} className="text-gray-300 hover:text-red-500 transition-colors">
+                <button onClick={() => handleDelete(p.id)} className="text-gray-300 hover:text-red-500 transition-colors" aria-label="Eliminar proyecto">
                   <Trash2 size={13} />
                 </button>
               </div>
