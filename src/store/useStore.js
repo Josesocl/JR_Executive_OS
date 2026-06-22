@@ -136,6 +136,67 @@ export const useStore = create((set, get) => ({
     if (data) set((s) => ({ actions: [...s.actions, normalizeAction(data)] }))
   },
 
+  addProject: async (fields) => {
+    const { data } = await supabase
+      .from('projects')
+      .insert({ name: fields.name, status: fields.status, next_action: fields.nextAction, pillar: fields.pillar })
+      .select().single()
+    if (data) set((s) => ({ projects: [...s.projects, normalizeProject(data)] }))
+  },
+
+  updateProject: async (id, fields) => {
+    await supabase.from('projects')
+      .update({ name: fields.name, status: fields.status, next_action: fields.nextAction, pillar: fields.pillar })
+      .eq('id', id)
+    set((s) => ({
+      projects: s.projects.map((p) =>
+        p.id === id ? { ...p, ...fields, nextAction: fields.nextAction } : p
+      ),
+    }))
+  },
+
+  deleteProject: async (id) => {
+    await supabase.from('projects').delete().eq('id', id)
+    set((s) => ({ projects: s.projects.filter((p) => p.id !== id) }))
+  },
+
+  updateAction: async (id, fields) => {
+    await supabase.from('actions')
+      .update({ text: fields.text, ctx: fields.ctx, energy: fields.energy, project: fields.project })
+      .eq('id', id)
+    set((s) => ({
+      actions: s.actions.map((a) => a.id === id ? { ...a, ...fields } : a),
+    }))
+  },
+
+  deleteAction: async (id) => {
+    await supabase.from('actions').delete().eq('id', id)
+    set((s) => ({ actions: s.actions.filter((a) => a.id !== id) }))
+  },
+
+  convertInboxItem: async (id, type, fields) => {
+    await supabase.from('inbox').update({ processed: true }).eq('id', id)
+    if (type === 'action') {
+      const { data } = await supabase
+        .from('actions')
+        .insert({ text: fields.text, ctx: fields.ctx || '', done: false, energy: fields.energy || 'med', project: fields.project || '' })
+        .select().single()
+      if (data) set((s) => ({
+        inbox: s.inbox.map((i) => i.id === id ? { ...i, processed: true } : i),
+        actions: [...s.actions, normalizeAction(data)],
+      }))
+    } else {
+      const { data } = await supabase
+        .from('projects')
+        .insert({ name: fields.name, status: 'active', next_action: fields.nextAction || '', pillar: fields.pillar || '' })
+        .select().single()
+      if (data) set((s) => ({
+        inbox: s.inbox.map((i) => i.id === id ? { ...i, processed: true } : i),
+        projects: [...s.projects, normalizeProject(data)],
+      }))
+    }
+  },
+
   // ── Habits
   incrementHabit: async (id) => {
     const habit = get().habits.find((h) => h.id === id)
