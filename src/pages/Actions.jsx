@@ -3,7 +3,6 @@ import { CheckCircle2, Circle, Plus, Pencil, Trash2 } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { Card, Badge, EmptyState } from '../components/ui'
 import Modal from '../components/Modal'
-import { clsx } from 'clsx'
 
 const ENERGY_OPTIONS = [
   { value: 'high', label: 'Alta'   },
@@ -117,10 +116,10 @@ export default function Actions() {
                 <Badge variant={energyColors[a.energy]?.badge || 'gray'}>{energyColors[a.energy]?.label}</Badge>
               </div>
             </div>
-            <button onClick={() => openEdit(a)} className="text-gray-300 hover:text-blue-500 transition-colors mt-0.5">
+            <button onClick={() => openEdit(a)} className="text-gray-300 hover:text-blue-500 transition-colors mt-0.5" aria-label="Editar acción">
               <Pencil size={13} />
             </button>
-            <button onClick={() => handleDelete(a.id)} className="text-gray-300 hover:text-red-500 transition-colors mt-0.5">
+            <button onClick={() => handleDelete(a.id)} className="text-gray-300 hover:text-red-500 transition-colors mt-0.5" aria-label="Eliminar acción">
               <Trash2 size={13} />
             </button>
           </div>
@@ -136,7 +135,7 @@ export default function Actions() {
                 <CheckCircle2 size={16} className="text-green-500" />
               </button>
               <div className="text-sm text-gray-500 line-through flex-1">{a.text}</div>
-              <button onClick={() => handleDelete(a.id)} className="text-gray-200 hover:text-red-400 transition-colors">
+              <button onClick={() => handleDelete(a.id)} className="text-gray-200 hover:text-red-400 transition-colors" aria-label="Eliminar acción">
                 <Trash2 size={13} />
               </button>
             </div>
