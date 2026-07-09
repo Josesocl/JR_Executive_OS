@@ -101,6 +101,14 @@ export function PlannerView({ userId, date }: PlannerViewProps) {
       <div className="grid grid-cols-1 lg:grid-cols-[65fr_35fr] gap-6">
         {/* Left column */}
         <div className="space-y-6">
+          {/* Priorities */}
+          <DailyPriorities
+            priorities={priorities}
+            onUpdate={updatePriority}
+            planId={plan?.id ?? ''}
+            onCreatePriority={createPriority}
+          />
+
           {/* Timebox */}
           <HarvardTimebox
             planId={plan?.id ?? ''}
@@ -108,14 +116,6 @@ export function PlannerView({ userId, date }: PlannerViewProps) {
             date={date}
             onUpdateBlock={updateTimeBlock}
             onCreateBlock={createTimeBlock}
-          />
-
-          {/* Priorities */}
-          <DailyPriorities
-            priorities={priorities}
-            onUpdate={updatePriority}
-            planId={plan?.id ?? ''}
-            onCreatePriority={createPriority}
           />
         </div>
 

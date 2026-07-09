@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 /** Routes that do NOT require authentication */
-const PUBLIC_PATHS = ['/', '/login', '/register', '/auth/callback']
+const PUBLIC_PATHS = ['/', '/login', '/register', '/auth/callback', '/pending-approval']
 
 function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.includes(pathname)) return true
@@ -52,6 +52,19 @@ export async function middleware(request: NextRequest) {
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('next', pathname)
     return NextResponse.redirect(loginUrl)
+  }
+
+  // Piloto cerrado: usuarios autenticados pero no aprobados → /pending-approval
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_beta_approved')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.is_beta_approved) {
+    const pendingUrl = request.nextUrl.clone()
+    pendingUrl.pathname = '/pending-approval'
+    return NextResponse.redirect(pendingUrl)
   }
 
   return supabaseResponse

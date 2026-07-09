@@ -8,6 +8,7 @@ export interface Profile {
   timezone: string | null
   plan: 'free' | 'pro' | 'team'
   stripe_customer_id: string | null
+  is_beta_approved: boolean
   onboarded: boolean
   created_at: string
   updated_at: string
