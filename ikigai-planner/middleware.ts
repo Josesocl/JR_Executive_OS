@@ -58,19 +58,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Piloto cerrado: usuarios autenticados pero no aprobados → /pending-approval
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_beta_approved')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile?.is_beta_approved) {
-    const pendingUrl = request.nextUrl.clone()
-    pendingUrl.pathname = '/pending-approval'
-    return NextResponse.redirect(pendingUrl)
-  }
-
+  // is_beta_approved check happens in (app)/layout.tsx to avoid edge timeout
   return supabaseResponse
 }
 
