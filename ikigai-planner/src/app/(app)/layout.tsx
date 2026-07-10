@@ -16,6 +16,16 @@ export default async function AppLayout({
     redirect('/login')
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_beta_approved')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.is_beta_approved) {
+    redirect('/pending-approval')
+  }
+
   return (
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#f0ece4' }}>
       <Sidebar user={user} />
