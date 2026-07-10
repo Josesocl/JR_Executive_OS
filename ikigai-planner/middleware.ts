@@ -15,6 +15,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Public paths skip Supabase entirely — edge middleware has a 1500ms
+  // timeout and must not depend on a network call for public pages.
+  if (isPublicPath(request.nextUrl.pathname)) {
+    return NextResponse.next()
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -43,18 +49,11 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const { pathname } = request.nextUrl
-
-  // Allow public paths unconditionally
-  if (isPublicPath(pathname)) {
-    return supabaseResponse
-  }
-
   // Unauthenticated users trying to reach protected routes → /login
   if (!user) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
-    loginUrl.searchParams.set('next', pathname)
+    loginUrl.searchParams.set('next', request.nextUrl.pathname)
     return NextResponse.redirect(loginUrl)
   }
 
