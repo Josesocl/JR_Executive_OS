@@ -120,5 +120,5 @@ Agrega script al package.json:
 
 ## 📞 Soporte
 
-JR Jottar — https://jrjottar.com
+JR Jottar — https://www.ibsolucion.com
 "Te acompaño al siguiente nivel. Un paso a la vez."
