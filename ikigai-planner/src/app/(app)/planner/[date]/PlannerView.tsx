@@ -12,6 +12,7 @@ import { EnergyMeter } from '@/components/planner/EnergyMeter'
 import { WaterTracker } from '@/components/planner/WaterTracker'
 import { GratitudeSection } from '@/components/planner/GratitudeSection'
 import { DayReflection } from '@/components/planner/DayReflection'
+import { DayAgenda } from '@/components/planner/DayAgenda'
 
 interface PlannerViewProps {
   userId: string
@@ -121,6 +122,9 @@ export function PlannerView({ userId, date }: PlannerViewProps) {
 
         {/* Right column */}
         <div className="space-y-4">
+          {/* Google Calendar agenda for the day */}
+          <DayAgenda date={date} />
+
           {/* Energy + Water */}
           <div className="bg-white rounded-xl shadow-sm p-4 space-y-3">
             <EnergyMeter

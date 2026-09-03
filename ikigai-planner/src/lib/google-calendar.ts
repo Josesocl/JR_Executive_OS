@@ -79,3 +79,40 @@ export async function refreshAccessToken(refreshToken: string): Promise<{ access
   if (!res.ok) throw new Error(`Token refresh failed: ${await res.text()}`)
   return res.json()
 }
+
+// ─── Events ──────────────────────────────────────────────────────────────────
+
+export interface GoogleEvent {
+  id: string
+  summary?: string
+  location?: string
+  status?: string
+  start: { dateTime?: string; date?: string }
+  end: { dateTime?: string; date?: string }
+}
+
+/**
+ * Lists events from a calendar within [timeMin, timeMax] (RFC3339 instants).
+ * Recurring events are expanded (singleEvents) and returned in start order.
+ */
+export async function listEvents(
+  accessToken: string,
+  calendarId: string,
+  timeMin: string,
+  timeMax: string,
+): Promise<GoogleEvent[]> {
+  const params = new URLSearchParams({
+    timeMin,
+    timeMax,
+    singleEvents: 'true',
+    orderBy: 'startTime',
+    maxResults: '100',
+  })
+  const res = await fetch(
+    `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  )
+  if (!res.ok) throw new Error(`events.list failed: ${res.status} ${await res.text()}`)
+  const data = await res.json()
+  return (data.items ?? []) as GoogleEvent[]
+}
