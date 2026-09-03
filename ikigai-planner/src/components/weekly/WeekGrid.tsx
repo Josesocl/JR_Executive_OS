@@ -3,6 +3,7 @@
 import { addDays, isToday, parseISO, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { toISODateString } from '@/lib/utils/dates'
+import { useCalendarEvents, type AgendaEvent } from '@/hooks/useCalendarEvents'
 import { DayColumn } from './DayColumn'
 
 interface WeekGridProps {
@@ -25,6 +26,17 @@ export function WeekGrid({ weekStart, userId, onPrevWeek, onNextWeek }: WeekGrid
   })
 
   const weekEnd = addDays(monday, 6)
+
+  // One fetch for the whole week; group events by their Santiago-local date.
+  const { data: eventsData } = useCalendarEvents(weekStart, toISODateString(weekEnd))
+  const eventsByDate = (eventsData?.events ?? []).reduce<Record<string, AgendaEvent[]>>(
+    (acc, ev) => {
+      ;(acc[ev.date] ??= []).push(ev)
+      return acc
+    },
+    {},
+  )
+
   const startLabel = format(monday, 'd MMM', { locale: es })
   const endLabel = format(weekEnd, 'd MMM yyyy', { locale: es })
   // Capitalize first letters
@@ -61,7 +73,13 @@ export function WeekGrid({ weekStart, userId, onPrevWeek, onNextWeek }: WeekGrid
       {/* 7-column day grid */}
       <div className="grid grid-cols-7 gap-1.5 p-3">
         {days.map(({ date, isToday: today }) => (
-          <DayColumn key={date} date={date} isToday={today} userId={userId} />
+          <DayColumn
+            key={date}
+            date={date}
+            isToday={today}
+            userId={userId}
+            events={eventsByDate[date] ?? []}
+          />
         ))}
       </div>
     </div>
