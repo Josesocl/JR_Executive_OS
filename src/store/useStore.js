@@ -51,6 +51,12 @@ export const useStore = create((set, get) => ({
   setActiveTab: (tab) => set({ activeTab: tab }),
   setEnergyLevel: (level) => set({ energyLevel: level }),
 
+  // Limpia los datos al cerrar sesión (evita filtrar datos entre usuarios)
+  resetData: () => set({
+    inbox: [], actions: [], projects: [], habits: [],
+    initialized: false, activeTab: 'dashboard',
+  }),
+
   // ── Data
   inbox: [],
   actions: [],

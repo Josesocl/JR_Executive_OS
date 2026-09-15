@@ -1,8 +1,9 @@
 import {
   LayoutDashboard, Inbox, FolderOpen, ListChecks,
-  RefreshCw, Heart, Brain, Settings, ChevronRight
+  RefreshCw, Heart, Brain, LogOut
 } from 'lucide-react'
 import { useStore } from '../store/useStore'
+import { supabase } from '../lib/supabase'
 import { clsx } from 'clsx'
 
 const NAV_ITEMS = [
@@ -15,9 +16,16 @@ const NAV_ITEMS = [
   { id: 'agents',     label: 'Agentes IA',        Icon: Brain },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ userEmail }) {
   const { activeTab, setActiveTab, getInboxCount } = useStore()
   const inboxCount = getInboxCount()
+
+  const displayName = userEmail || 'Usuario'
+  const initials = (userEmail?.[0] || 'U').toUpperCase()
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+  }
 
   return (
     <aside className="w-56 flex-shrink-0 bg-white border-r border-gray-100 flex flex-col h-screen sticky top-0">
@@ -60,13 +68,19 @@ export default function Sidebar() {
       <div className="p-3 border-t border-gray-100">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
-            JR
+            {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium text-gray-800 truncate">José Ramón Jottar</div>
+            <div className="text-xs font-medium text-gray-800 truncate">{displayName}</div>
             <div className="text-xs text-gray-400">Executive OS™</div>
           </div>
-          <Settings size={13} className="text-gray-300 cursor-pointer hover:text-gray-500" />
+          <button
+            onClick={handleLogout}
+            title="Cerrar sesión"
+            className="text-gray-300 hover:text-gray-600 transition-colors"
+          >
+            <LogOut size={14} />
+          </button>
         </div>
       </div>
     </aside>
