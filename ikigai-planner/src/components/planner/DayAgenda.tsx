@@ -11,6 +11,14 @@ interface DayAgendaProps {
 export function DayAgenda({ date }: DayAgendaProps) {
   const { data, isLoading } = useCalendarEvents(date)
 
+  // The Timebox grid now shows connected events in their time slots, so this
+  // card only needs to appear when there's something to act on: still loading,
+  // not connected, or the connection expired. When connected with events (or
+  // simply no events), render nothing to avoid duplicating the grid.
+  if (data?.connected && !data.needsReconnect) {
+    return null
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
       <div
