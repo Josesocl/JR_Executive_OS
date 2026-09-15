@@ -47,6 +47,7 @@ export const useStore = create((set, get) => ({
   energyLevel: 'high',
   weeklyReviewOpen: false,
   initialized: false,
+  loading: false,
 
   setActiveTab: (tab) => set({ activeTab: tab }),
   setEnergyLevel: (level) => set({ energyLevel: level }),
@@ -64,45 +65,55 @@ export const useStore = create((set, get) => ({
   habits: [],
 
   // ── Init: carga desde Supabase, siembra si está vacío
+  // Candado anti-reentrada: al cambiar el estado de auth, Supabase emite
+  // varios eventos (INITIAL_SESSION, SIGNED_IN…). Sin este guard, varias
+  // llamadas concurrentes veían la tabla vacía y sembraban en paralelo,
+  // triplicando los datos. `loading` se comprueba de forma síncrona antes
+  // de cualquier await, así solo la primera llamada procede.
   initializeFromDB: async () => {
-    if (get().initialized) return
+    if (get().initialized || get().loading) return
+    set({ loading: true })
 
-    const [inboxRes, actionsRes, projectsRes, habitsRes] = await Promise.all([
-      supabase.from('inbox').select('*').order('created_at', { ascending: false }),
-      supabase.from('actions').select('*').order('created_at'),
-      supabase.from('projects').select('*').order('created_at'),
-      supabase.from('habits').select('*').order('created_at'),
-    ])
+    try {
+      const [inboxRes, actionsRes, projectsRes, habitsRes] = await Promise.all([
+        supabase.from('inbox').select('*').order('created_at', { ascending: false }),
+        supabase.from('actions').select('*').order('created_at'),
+        supabase.from('projects').select('*').order('created_at'),
+        supabase.from('habits').select('*').order('created_at'),
+      ])
 
-    // Sembrar datos iniciales si las tablas están vacías
-    if (!inboxRes.data?.length) {
-      await supabase.from('inbox').insert(seedInbox)
-      const fresh = await supabase.from('inbox').select('*').order('created_at', { ascending: false })
-      inboxRes.data = fresh.data
-    }
-    if (!actionsRes.data?.length) {
-      await supabase.from('actions').insert(seedActions)
-      const fresh = await supabase.from('actions').select('*').order('created_at')
-      actionsRes.data = fresh.data
-    }
-    if (!projectsRes.data?.length) {
-      await supabase.from('projects').insert(seedProjects)
-      const fresh = await supabase.from('projects').select('*').order('created_at')
-      projectsRes.data = fresh.data
-    }
-    if (!habitsRes.data?.length) {
-      await supabase.from('habits').insert(seedHabits)
-      const fresh = await supabase.from('habits').select('*').order('created_at')
-      habitsRes.data = fresh.data
-    }
+      // Sembrar datos iniciales solo si las tablas están vacías
+      if (!inboxRes.data?.length) {
+        await supabase.from('inbox').insert(seedInbox)
+        const fresh = await supabase.from('inbox').select('*').order('created_at', { ascending: false })
+        inboxRes.data = fresh.data
+      }
+      if (!actionsRes.data?.length) {
+        await supabase.from('actions').insert(seedActions)
+        const fresh = await supabase.from('actions').select('*').order('created_at')
+        actionsRes.data = fresh.data
+      }
+      if (!projectsRes.data?.length) {
+        await supabase.from('projects').insert(seedProjects)
+        const fresh = await supabase.from('projects').select('*').order('created_at')
+        projectsRes.data = fresh.data
+      }
+      if (!habitsRes.data?.length) {
+        await supabase.from('habits').insert(seedHabits)
+        const fresh = await supabase.from('habits').select('*').order('created_at')
+        habitsRes.data = fresh.data
+      }
 
-    set({
-      inbox: inboxRes.data ?? [],
-      actions: (actionsRes.data ?? []).map(normalizeAction),
-      projects: (projectsRes.data ?? []).map(normalizeProject),
-      habits: habitsRes.data ?? [],
-      initialized: true,
-    })
+      set({
+        inbox: inboxRes.data ?? [],
+        actions: (actionsRes.data ?? []).map(normalizeAction),
+        projects: (projectsRes.data ?? []).map(normalizeProject),
+        habits: habitsRes.data ?? [],
+        initialized: true,
+      })
+    } finally {
+      set({ loading: false })
+    }
   },
 
   // ── Inbox
