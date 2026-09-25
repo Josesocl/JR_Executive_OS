@@ -55,6 +55,19 @@ export default async function handler(req, res) {
   }
 
   const { agentId, command, context } = req.body || {}
+
+  // Diagnóstico seguro de la key (no revela el secreto): longitud, prefijo,
+  // últimos 4, y si trae espacios/saltos de línea. Quitar tras depurar.
+  if (command === '__debug_key__') {
+    return res.status(200).json({
+      keyLength: key.length,
+      keyPrefix: key.slice(0, 8),
+      keyTail: key.slice(-4),
+      hasWhitespace: /\s/.test(key),
+      startsCorrect: key.startsWith('sk-ant-'),
+    })
+  }
+
   const system = SYSTEM_PROMPTS[agentId] || SYSTEM_PROMPTS['chief-of-staff']
 
   try {
