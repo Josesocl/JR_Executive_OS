@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Zap, FolderOpen, Sparkles } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import Modal from './Modal'
+import { postApi } from '../lib/api'
 
 const ENERGY_OPTIONS = [
   { value: 'high', label: 'Alta'  },
@@ -29,13 +30,9 @@ export default function ProcessModal({ item, onClose }) {
   useEffect(() => {
     let cancelled = false
     const active = projects.filter(p => p.status === 'active')
-    fetch('/api/suggest', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        text: item.text,
-        projects: active.map(p => ({ name: p.name, pillar: p.pillar, nextAction: p.nextAction })),
-      }),
+    postApi('/api/suggest', {
+      text: item.text,
+      projects: active.map(p => ({ name: p.name, pillar: p.pillar, nextAction: p.nextAction })),
     })
       .then(r => (r.ok ? r.json() : null))
       .then(s => {

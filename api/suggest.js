@@ -3,6 +3,8 @@
 // con probabilidades; el código decide qué sugerencias usar según la confianza.
 // La API key vive SOLO del lado servidor (env var TYPESAFE_API_KEY en Vercel).
 
+import { requireUser } from './_lib/auth.js'
+
 const MODEL = 'jev-latest'
 const NO_PROJECT = 'sin proyecto'
 
@@ -72,6 +74,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'method_not_allowed' })
   }
+
+  if (!(await requireUser(req, res))) return
 
   const key = process.env.TYPESAFE_API_KEY
   if (!key) {

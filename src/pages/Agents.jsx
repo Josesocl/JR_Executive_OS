@@ -3,6 +3,7 @@ import { Card, SectionTitle } from '../components/ui'
 import { clsx } from 'clsx'
 import { useState } from 'react'
 import { useStore } from '../store/useStore'
+import { postApi } from '../lib/api'
 
 const AGENTS = [
   {
@@ -83,14 +84,10 @@ export default function Agents() {
     setError('')
     setResponse('')
     try {
-      const res = await fetch('/api/agent', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          agentId: agent.id,
-          command,
-          context: { inbox, actions, projects, habits },
-        }),
+      const res = await postApi('/api/agent', {
+        agentId: agent.id,
+        command,
+        context: { inbox, actions, projects, habits },
       })
       const data = await res.json()
       if (!res.ok) {

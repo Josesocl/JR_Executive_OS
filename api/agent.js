@@ -2,6 +2,8 @@
 // La API key vive SOLO del lado servidor (env var ANTHROPIC_API_KEY en Vercel);
 // nunca se expone al navegador.
 
+import { requireUser } from './_lib/auth.js'
+
 const MODEL = 'claude-sonnet-5'
 
 // Perfil compartido: contexto de JR que todos los agentes conocen.
@@ -45,6 +47,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'method_not_allowed' })
   }
+
+  if (!(await requireUser(req, res))) return
 
   const key = process.env.ANTHROPIC_API_KEY
   if (!key) {
