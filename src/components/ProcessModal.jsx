@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Zap, FolderOpen } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Zap, FolderOpen, Sparkles } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import Modal from './Modal'
 
@@ -19,6 +19,43 @@ export default function ProcessModal({ item, onClose }) {
   const [actionForm, setActionForm] = useState({ text: item.text, ctx: '', energy: 'med', project: '' })
   const [projectForm, setProjectForm] = useState({ name: item.text, nextAction: '', pillar: '' })
 
+  // Sugerencias de TypeSafe (api/suggest.js). Solo precargan campos que el
+  // usuario aún no ha tocado; si la API falla, el modal funciona igual.
+  const [suggesting, setSuggesting] = useState(true)
+  const [suggested, setSuggested]   = useState(false)
+  const touched = useRef(new Set())
+  const touch = (field) => touched.current.add(field)
+
+  useEffect(() => {
+    let cancelled = false
+    const active = projects.filter(p => p.status === 'active')
+    fetch('/api/suggest', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        text: item.text,
+        projects: active.map(p => ({ name: p.name, pillar: p.pillar, nextAction: p.nextAction })),
+      }),
+    })
+      .then(r => (r.ok ? r.json() : null))
+      .then(s => {
+        if (cancelled || !s) return
+        if (s.type && !touched.current.has('type')) setType(s.type.value)
+        setActionForm(f => ({
+          ...f,
+          ...(s.energy && !touched.current.has('energy') && { energy: s.energy.value }),
+          ...(s.project && !touched.current.has('project') && { project: s.project.value }),
+        }))
+        if (s.pillar && !touched.current.has('pillar')) setProjectForm(f => ({ ...f, pillar: s.pillar.value }))
+        setSuggested(true)
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setSuggesting(false) })
+    return () => { cancelled = true }
+    // Solo al abrir el modal para este ítem
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id])
+
   const handleSave = async () => {
     setSaving(true)
     await convertInboxItem(item.id, type, type === 'action' ? actionForm : projectForm)
@@ -28,16 +65,23 @@ export default function ProcessModal({ item, onClose }) {
 
   return (
     <Modal title={`Procesar: "${item.text.slice(0, 40)}…"`} onClose={onClose}>
+      {(suggesting || suggested) && (
+        <div className="flex items-center gap-1.5 text-xs text-purple-600 mb-2">
+          <Sparkles size={12} />
+          {suggesting ? 'Analizando ítem…' : 'Campos sugeridos por IA — revisa antes de guardar'}
+        </div>
+      )}
+
       {/* Type selector */}
       <div className="flex gap-2 mb-4">
         <button
-          onClick={() => setType('action')}
+          onClick={() => { touch('type'); setType('action') }}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-sm font-medium transition-colors ${type === 'action' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
         >
           <Zap size={14} /> Acción
         </button>
         <button
-          onClick={() => setType('project')}
+          onClick={() => { touch('type'); setType('project') }}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-sm font-medium transition-colors ${type === 'project' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
         >
           <FolderOpen size={14} /> Proyecto
@@ -57,13 +101,13 @@ export default function ProcessModal({ item, onClose }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Energía</label>
-              <select className="input-base w-full" value={actionForm.energy} onChange={e => setActionForm(f => ({ ...f, energy: e.target.value }))}>
+              <select className="input-base w-full" value={actionForm.energy} onChange={e => { touch('energy'); setActionForm(f => ({ ...f, energy: e.target.value })) }}>
                 {ENERGY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Proyecto</label>
-              <select className="input-base w-full" value={actionForm.project} onChange={e => setActionForm(f => ({ ...f, project: e.target.value }))}>
+              <select className="input-base w-full" value={actionForm.project} onChange={e => { touch('project'); setActionForm(f => ({ ...f, project: e.target.value })) }}>
                 <option value="">— Sin proyecto —</option>
                 {projects.filter(p => p.status === 'active').map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
               </select>
@@ -82,7 +126,7 @@ export default function ProcessModal({ item, onClose }) {
           </div>
           <div>
             <label className="text-xs text-gray-500 mb-1 block">Pilar</label>
-            <select className="input-base w-full" value={projectForm.pillar} onChange={e => setProjectForm(f => ({ ...f, pillar: e.target.value }))}>
+            <select className="input-base w-full" value={projectForm.pillar} onChange={e => { touch('pillar'); setProjectForm(f => ({ ...f, pillar: e.target.value })) }}>
               <option value="">— Sin pilar —</option>
               {PILLAR_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
