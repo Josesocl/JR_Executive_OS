@@ -1,5 +1,9 @@
 # GTD Executive OS™ — por JR Jottar
 
+> **Documento histórico.** El plan vigente está en [docs/ROADMAP.md](docs/ROADMAP.md):
+> esta app Vite se unifica dentro de `ikigai-planner/` (Next.js). Las secciones
+> de Stripe y Electron de abajo ya no aplican.
+
 Sistema Operativo Ejecutivo de IA. Web app React lista para desplegar en Vercel.
 
 ---
