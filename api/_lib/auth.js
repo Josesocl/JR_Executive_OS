@@ -6,7 +6,7 @@
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 
-// Devuelve el usuario, o responde 401/503 y devuelve null.
+// Devuelve el usuario, o responde 401/403/503 y devuelve null.
 export async function requireUser(req, res) {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     res.status(503).json({ error: 'no_auth_config', message: 'Falta configurar Supabase en el servidor.' })
@@ -31,6 +31,19 @@ export async function requireUser(req, res) {
     const user = await r.json()
     if (!user?.id) {
       res.status(401).json({ error: 'unauthorized', message: 'Sesión inválida.' })
+      return null
+    }
+
+    // Solo perfiles aprobados (profiles.is_beta_approved) usan las funciones
+    // de IA: una cuenta recién registrada no gasta créditos. Se consulta con
+    // el token del usuario, así RLS (profiles_select_own) limita a su fila.
+    const p = await fetch(
+      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}&select=is_beta_approved`,
+      { headers: { apikey: SUPABASE_ANON_KEY, authorization: `Bearer ${token}` } },
+    )
+    const rows = p.ok ? await p.json() : []
+    if (!rows[0]?.is_beta_approved) {
+      res.status(403).json({ error: 'not_approved', message: 'Tu cuenta aún no está aprobada para usar la IA.' })
       return null
     }
     return user

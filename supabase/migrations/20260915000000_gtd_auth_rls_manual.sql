@@ -2,6 +2,10 @@
 -- Proyecto Supabase: peubserssoxpeemkxtjm
 -- Ejecutar en: Supabase → SQL Editor → New query → pegar → Run
 --
+-- NOTA (2026-10-01): se aplicó a mano el 2026-09-15 y NO figura en el
+-- historial de migraciones de Supabase. No quitó allow_authenticated_all
+-- (creada en 20260717153359); eso lo corrige 20260930171333.
+--
 -- Qué hace: agrega user_id a las 4 tablas del GTD, elimina la política
 -- abierta allow_anon_all (que dejaba leer/escribir a cualquiera con la
 -- clave pública) y la reemplaza por RLS estricta: cada usuario ve y

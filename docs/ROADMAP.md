@@ -40,11 +40,25 @@ Base de datos compartida: Supabase `IBS Executive OS` (`peubserssoxpeemkxtjm`).
       (originales en `PROGRAMA IKIGAI JRJ`) y `gtd-executive-os.tar.gz`
       (= commit `de86eb3` en git).
 
-### Fase 1 — Modelo de datos unificado
-- Fusionar `actions` ↔ `tasks` y `habits` ↔ `planner_habits`.
-- Vincular `projects` con las metas (`life_goals` / `quarterly_goals`).
-- Revisar por qué `profiles` está vacío (el registro con aprobación podría
-  bloquear al propio dueño).
+### Fase 1 — Modelo de datos unificado (2026-10-01)
+- [x] Seguridad: quitada `allow_authenticated_all` de las 4 tablas GTD
+      (dejaba a cualquier cuenta con sesión leer/modificar datos ajenos).
+- [x] Respaldo: esquema `backup_20261001` en Supabase + JSON en OneDrive
+      (`PRODUCTIVIDAD PERSONAL/_RESPALDOS_DB/2026-10-01_antes_fase1.json`).
+- [x] `actions` es la tabla única de tareas: `project_id`, `plan_id`,
+      `weekly_goal_id`, `position`, `completed_at`. 4 de 5 acciones enlazadas
+      a su proyecto; "Actualizar Documento Fundacional v4" (texto "Marca JR")
+      queda sin enlazar — decidir a mano.
+- [x] `projects`: enlace opcional a `life_goals` / `quarterly_goals`; estados
+      válidos `active | someday | waiting | done | archived`.
+- [x] `inbox`: `source`, `external_ref`, `url` + índice único anti-duplicados.
+- [x] Hábitos: los 4 del GTD migrados a `planner_habits` sin rachas;
+      frecuencia `monthly` agregada.
+- [x] Funciones de IA exigen perfil aprobado (`is_beta_approved`).
+- [x] Historial completo de migraciones en `supabase/migrations/`.
+- Pendiente para Fase 2 (al cambiar el código): eliminar `actions.project`
+  (texto), `tasks` y `habits`; agregar `monthly` al tipo TS de hábitos.
+- Pendiente (manual, panel Supabase): activar "Leaked password protection".
 
 ### Fase 2 — GTD dentro de Next.js
 - Portar inbox, acciones, proyectos, revisión semanal, agentes y sugerencias
