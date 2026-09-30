@@ -34,9 +34,9 @@ Base de datos compartida: Supabase `IBS Executive OS` (`peubserssoxpeemkxtjm`).
 ### Fase 0 — Orden y seguridad
 - [x] Cada proyecto Vercel despliega solo si cambia su carpeta (`ignoreCommand`).
 - [x] Esta hoja de ruta como documento único.
-- [ ] Eliminar el proyecto Vercel `jr-executive-os` (duplicado, sin variables).
+- [x] Eliminar el proyecto Vercel `jr-executive-os` (duplicado, sin variables).
 - [ ] Credencial OAuth de Google fuera de OneDrive, en gestor de contraseñas.
-- [ ] Limpieza OneDrive: 37 archivos de 0 KB en `PLANNER CALENDAR`
+- [x] Limpieza OneDrive: 37 archivos de 0 KB en `PLANNER CALENDAR`
       (originales en `PROGRAMA IKIGAI JRJ`) y `gtd-executive-os.tar.gz`
       (= commit `de86eb3` en git).
 
